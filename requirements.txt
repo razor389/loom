@@ -1,0 +1,39 @@
+# Core
+pydantic>=2.6
+pydantic-settings>=2.2
+PyYAML>=6.0.1
+requests>=2.31
+python-dateutil>=2.8.2
+
+# Excel I/O (data-feed injection + table resizing)
+openpyxl>=3.1.2
+
+# Finance data sources
+yfinance>=0.2.40
+pandas>=2.1
+
+# SEC parsing/scraping helpers
+beautifulsoup4>=4.12
+lxml>=5.0
+
+# Reliability helpers (retries/backoff/circuit-breaker building blocks)
+tenacity>=8.2
+
+# Token counting (used by summarization engine if desired)
+tiktoken>=0.5
+
+# LLM providers (optional; install as needed)
+openai>=1.30
+anthropic>=0.30
+google-generativeai>=0.5
+
+# Windows-only Outlook integration (optional; only needed on Windows)
+pywin32>=306; platform_system=="Windows"
+
+# Dev / test
+pytest>=7.4
+pytest-cov>=4.1
+ruff>=0.5
+mypy>=1.8
+types-PyYAML>=6.0.12.20240808
+types-requests>=2.31.0.20240406
