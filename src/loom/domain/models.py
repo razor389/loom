@@ -1,10 +1,11 @@
 # src/loom/domain/models.py
 """
-Domain models for Loom.
+Domain models for Loom (IO-free).
 
 Defines canonical intermediate representations (IR), including:
-- FinancialRecord: typed metric value with fiscal period end support and provenance,
+- FinancialRecord: typed metric value with fiscal period end support and provenance.
+  Uses Decimal for deterministic arithmetic and clean regression diffs.
 - NarrativeResult: narrative output with token/context usage metadata.
 
-Models are used throughout the pipeline to enforce consistent structure and validation.
+Conversion to float is permitted only at the Excel write boundary.
 """

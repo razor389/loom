@@ -30,10 +30,10 @@ Thumbs.db
 
 # Runtime artifacts (per SPEC)
 outputs/
+.cache/
 
 # Local config (secrets)
 **/settings.toml
-EOF
 
 # Repomix
 repomix-output.xml

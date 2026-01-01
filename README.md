@@ -3,6 +3,7 @@
 Loom is a modular Python pipeline that generates standardized Excel-based financial company reports for **Operating** and **Insurance** company types.
 
 The system refactors legacy procedural scripts into a maintainable, testable architecture built around:
+
 - a **canonical metrics contract** (`src/loom/config/metrics_catalog.yaml`),
 - **strategy-based orchestration** (Operating vs Insurance),
 - an Excel-template **“data feed”** approach (Python injects data; templates own styling), and
@@ -36,6 +37,7 @@ Key directories (see `SPEC.md` for the full canonical structure):
 ## Installation
 
 ### From source (editable)
+
 ```bash
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
@@ -47,20 +49,20 @@ pip install -e .
 
 Loom does not commit secrets.
 
-* `src/loom/config/settings.example.toml` documents supported keys.
-* Runtime configuration should come from either:
+- `src/loom/config/settings.example.toml` documents supported keys.
+- Runtime configuration should come from either:
 
-  * environment variables (recommended for CI), and/or
-  * a user-local settings file (not committed), e.g.:
+  - environment variables (recommended for CI), and/or
+  - a user-local settings file (not committed), e.g.:
 
-    * Linux/macOS: `~/.config/loom/settings.toml`
-    * Windows: `%APPDATA%\\loom\\settings.toml` (or equivalent)
+    - Linux/macOS: `~/.config/loom/settings.toml`
+    - Windows: `%APPDATA%\\loom\\settings.toml` (or equivalent)
 
 Typical configuration includes:
 
-* API keys (FMP, LLM providers),
-* provider selection and model names,
-* non-secret defaults (e.g., timeouts).
+- API keys (FMP, LLM providers),
+- provider selection and model names,
+- non-secret defaults (e.g., timeouts).
 
 ## Templates (Package Data)
 
@@ -68,9 +70,9 @@ Excel templates live in `src/loom/templates/` and must be loaded via package res
 
 Template contract:
 
-* a named table `tbl_data` (required)
-* a named table `tbl_narrative` (optional)
-* formulas should reference structured table columns (e.g., `tbl_data[revenue]`)
+- a named table `tbl_data` (required)
+- a named table `tbl_narrative` (optional)
+- formulas should reference structured table columns (e.g., `tbl_data[revenue]`)
 
 ## Usage
 
@@ -88,12 +90,12 @@ python -m loom.main TICKER [options]
 
 Common flags:
 
-* `--strategy operating|insurance|auto`
-* `--start-year YYYY`
-* `--end-year YYYY` (optional)
-* `--debug`
-* `--no-narrative`
-* `--output-dir outputs/`
+- `--strategy operating|insurance|auto`
+- `--start-year YYYY`
+- `--end-year YYYY` (optional)
+- `--debug`
+- `--no-narrative`
+- `--output-dir outputs/`
 
 Example:
 
@@ -107,21 +109,21 @@ python -m loom AAPL --strategy operating --start-year 2022 --end-year 2025
 
 Writes only the final workbook (overwritten each run):
 
-* `outputs/final/{TICKER}.{YY}.xlsx` (e.g., `outputs/final/AAPL.26.xlsx`)
+- `outputs/final/{TICKER}.{YY}.xlsx` (e.g., `outputs/final/AAPL.26.xlsx`)
 
 ### Debug (`--debug`)
 
 In addition to the final workbook, writes diagnostics under:
 
-* `outputs/debug/{TICKER}/{YYYY}/` (cleared/recreated each run)
+- `outputs/debug/{TICKER}/{YYYY}/` (cleared/recreated each run)
 
 Typical debug contents:
 
-* `logs.jsonl` (structured events)
-* `raw/` (raw vendor payload snapshots / SEC URLs)
-* `normalized/` (FinancialRecords + NarrativeResults dumps)
-* `validation/` (validation report, missing metrics)
-* `final/` (copy of final workbook + consolidated JSON)
+- `logs.jsonl` (structured events)
+- `raw/` (raw vendor payload snapshots / SEC URLs)
+- `normalized/` (FinancialRecords + NarrativeResults dumps)
+- `validation/` (validation report, missing metrics)
+- `final/` (copy of final workbook + consolidated JSON)
 
 ## Data Contracts
 
@@ -129,11 +131,11 @@ Typical debug contents:
 
 The system contract. Each metric must define:
 
-* `unit`
-* `sign_convention`
-* `strategies`
-* `missingness_policy` (`required` | `optional` | `warn_if_missing`)
-* optional constraints (bounds, allow_negative, ratio bounds)
+- `unit`
+- `sign_convention`
+- `strategies`
+- `missingness_policy` (`required` | `optional` | `warn_if_missing`)
+- optional constraints (bounds, allow_negative, ratio bounds)
 
 ### Mappings (`mappings_operating.yaml`, `mappings_insurance.yaml`)
 
@@ -143,15 +145,15 @@ Mappings support ordered candidates for each Loom metric key:
 2. If a fallback candidate is used, emit `mapping.fallback_used`.
 3. If none resolve:
 
-   * fail if `missingness_policy=required`
-   * otherwise warn and omit.
+   - fail if `missingness_policy=required`
+   - otherwise warn and omit.
 
 ### Intermediate representation
 
 Core canonical models:
 
-* `FinancialRecord` — metric value with fiscal period end support + provenance
-* `NarrativeResult` — narrative output with token/context usage metadata
+- `FinancialRecord` — metric value with fiscal period end support + provenance
+- `NarrativeResult` — narrative output with token/context usage metadata
 
 ## Development
 
@@ -170,6 +172,5 @@ mypy src
 
 ## Notes / Platform Considerations
 
-* Outlook integration (`outlook_client.py`) is Windows-only and should degrade gracefully when unavailable.
-* Excel table resizing is required because `openpyxl` does not auto-expand tables; Loom explicitly updates table refs and writes into the expanded range.
-
+- Outlook integration (`outlook_client.py`) is Windows-only and should degrade gracefully when unavailable.
+- Excel table resizing is required because `openpyxl` does not auto-expand tables; Loom explicitly updates table refs and writes into the expanded range.

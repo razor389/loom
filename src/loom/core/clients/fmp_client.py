@@ -1,9 +1,13 @@
 # src/loom/core/clients/fmp_client.py
 """
-Financial Modeling Prep (FMP) client.
+Financial Modeling Prep (FMP) client (async-first).
 
-Provides HTTP request utilities, rate limiting, error handling, and JSON parsing for FMP endpoints.
-Returns raw payloads or lightly-typed structures for use by higher-level fetchers.
+Uses the shared async HTTP transport and cache layer in `loom.core.http`.
+Responsibilities:
+- construct FMP endpoint URLs + params,
+- perform async HTTP requests with retries/timeouts,
+- apply client-boundary caching (for faster iteration and rate-limit safety),
+- return raw JSON payloads plus provenance identifiers.
 
-No metric-key mapping should live here; mapping occurs in `loom.fetchers.financial`.
+No metric-key mapping occurs here; mapping is performed in `loom.fetchers.financial`.
 """

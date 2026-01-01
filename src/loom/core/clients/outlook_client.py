@@ -1,9 +1,11 @@
 # src/loom/core/clients/outlook_client.py
 """
-Outlook client (Windows-only) for retrieving local research inputs.
+Outlook client (Windows-only, optional).
 
-Wraps win32com interactions with circuit-breaker protection to avoid hanging the pipeline.
+Design requirements:
+- Must not hard-fail imports on non-Windows platforms.
+- win32com/pywin32 imports must be lazy or guarded by try/except ImportError.
+- Exposes an interface that allows narrative generation to be disabled cleanly.
+
 Produces raw textual sources or message metadata for use by `loom.fetchers.intelligence`.
-
-This module should degrade gracefully when Outlook/COM is unavailable.
 """

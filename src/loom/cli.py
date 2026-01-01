@@ -3,15 +3,16 @@
 Command-line interface for Loom.
 
 Responsibilities:
-- parse user arguments (ticker, strategy, years, debug, narrative flags),
+- parse CLI args (ticker, strategy, years, debug, narrative flags, cache controls),
 - resolve ticker aliases (canonical vs vendor tickers),
-- select and run the appropriate strategy (operating/insurance/auto),
+- execute the async pipeline via `asyncio.run(...)`,
 - validate outputs against the metrics catalog + mapping/constraint rules,
 - write the final Excel workbook, and
 - optionally emit debug artifacts under outputs/debug/{TICKER}/{YYYY}/ (overwrite semantics).
 
-This module owns orchestration boundaries but should not contain vendor-specific IO logic.
+Note: The pipeline is async-first. Strategies/fetchers/clients are async; the CLI is a sync wrapper.
 """
+
 from __future__ import annotations
 import argparse
 

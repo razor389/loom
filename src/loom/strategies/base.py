@@ -1,11 +1,11 @@
 # src/loom/strategies/base.py
 """
-Strategy interface.
+Strategy interface (async-first).
 
-Defines a stable strategy contract (e.g., fetch_data) returning:
-- List[FinancialRecord],
+Defines a stable strategy contract returning:
+- List[FinancialRecord] (Decimal-valued),
 - List[NarrativeResult],
 - summary metadata used by export/validation.
 
-Concrete strategies must be deterministic and testable (clients are injected or accessed via fetchers).
+Concrete strategies should parallelize independent vendor calls via asyncio.gather where appropriate.
 """

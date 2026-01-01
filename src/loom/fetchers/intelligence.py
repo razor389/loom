@@ -1,11 +1,11 @@
 # src/loom/fetchers/intelligence.py
 """
-Narrative/intelligence fetching.
+Narrative/intelligence fetching (optional, async-first).
 
 Responsibilities:
-- pull source text from Outlook (when enabled/available),
-- invoke summarization engine to produce provider-agnostic narratives,
+- optionally pull source text from Outlook (when enabled/available),
+- invoke the summarization engine to produce provider-agnostic narratives,
 - return NarrativeResult objects with token usage metadata.
 
-All narrative generation must remain isolated behind the summarization engine interface.
+Must degrade gracefully when Outlook/LLM providers are unavailable or when --no-narrative is set.
 """

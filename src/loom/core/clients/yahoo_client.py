@@ -2,9 +2,9 @@
 """
 Yahoo Finance client wrapper.
 
-Primarily wraps `yfinance` or equivalent data access to fetch:
-- market data (price, shares, market cap),
-- point-in-time metrics needed by strategies.
+Primary responsibility is to fetch market/point-in-time values required by strategies.
+This client may use yfinance (sync) internally; if so, it must be invoked in a way that does not
+block the async pipeline (e.g., `asyncio.to_thread`), preserving an async external interface.
 
 Returns raw values and provenance identifiers for downstream normalization.
 """

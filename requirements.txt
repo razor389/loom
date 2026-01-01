@@ -2,7 +2,7 @@
 pydantic>=2.6
 pydantic-settings>=2.2
 PyYAML>=6.0.1
-requests>=2.31
+httpx>=0.24.1
 python-dateutil>=2.8.2
 
 # Excel I/O (data-feed injection + table resizing)

@@ -31,6 +31,8 @@ loom/
 │   ├── final/                        # User-facing .xlsx reports
 │   └── debug/                        # Diagnostic dumps ({TICKER}/{YYYY}/...)
 │
+├── .cache/                           # OPTIONAL: client response cache (gitignored)
+│
 ├── src/
 │   └── loom/                         # Main Package Code
 │       ├── __init__.py
@@ -46,6 +48,12 @@ loom/
 │       │   └── ticker_map.yaml           # OPTIONAL: Vendor ticker aliases (BRK.B -> BRK-B)
 │       │
 │       ├── core/
+│       │   ├── http/                     # Shared async HTTP + caching primitives
+│       │   │   ├── __init__.py
+│       │   │   ├── transport.py          # httpx AsyncClient wrapper, timeouts, headers
+│       │   │   ├── cache.py              # file-based cache (read/write/readonly/off)
+│       │   │   └── retry.py              # retry/backoff policy (tenacity integration)
+│       │   │
 │       │   ├── clients/                  # Low-level Drivers (HTTP/MAPI wrappers)
 │       │   │   ├── __init__.py
 │       │   │   ├── fmp_client.py         # Requests, Rate Limits, JSON parsing
@@ -94,7 +102,7 @@ loom/
 │           ├── operating_v2.xlsm
 │           └── insurance_v2.xlsm
 │
-├── tests/                            # Unit/integration tests
+├── tests/                               # Unit/integration tests
 │   ├── domain/
 │   ├── fetchers/
 │   ├── strategies/
@@ -153,28 +161,30 @@ Minimum required fields:
 
 ### 4.2 Intermediate Representation (IR)
 
-**FinancialRecord**
-Key additions vs v1: explicit fiscal period end support + provenance.
+**FinancialRecord** (Decimal-based for deterministic tests/diffs)
 
 ```python
 class FinancialRecord(BaseModel):
     ticker: str
     fiscal_year: int
-    fiscal_period_end_date: date | None  # prevents year/date ambiguity in Excel
+    fiscal_period_end_date: date | None
 
     metric_key: str
-    value: float
+    value: Decimal
     period_type: str  # historical | forecast | ttm | point_in_time
 
-    # provenance
-    source_type: str        # fmp | sec | yahoo | outlook | derived
-    source_locator: str     # endpoint/url/accession/exhibit pointer
+    source_type: str
+    source_locator: str
     raw_key: str | None
     fetched_at: datetime
 
     currency: str | None = None
-    fx_rate: float | None = None
+    fx_rate: Decimal | None = None
 ```
+
+**Rounding rule:** Any derived calculations must be performed in `Decimal`. Conversion to `float` is permitted only at the Excel write boundary.
+
+---
 
 **NarrativeResult**
 Add token/context tracking:
@@ -200,12 +210,13 @@ Mappings (`mappings_operating.yaml`, `mappings_insurance.yaml`) must support ord
 
 1. Try candidates sequentially.
 2. If a fallback candidate is used (not the first), emit a WARNING log:
-   `event="mapping.fallback_used"`
-   `metric_key`, `primary_candidate`, `used_candidate`, `ticker`, `year`
+
+   * `event="mapping.fallback_used"`
+   * `metric_key`, `primary_candidate`, `used_candidate`, `ticker`, `year`
 3. If no candidates resolve:
 
-* If `missingness_policy=required` → fail validation.
-* Else warn and omit.
+   * If `missingness_policy=required` → fail validation.
+   * Else warn and omit.
 
 ---
 
@@ -234,36 +245,47 @@ Emit `event="time.fy_end_mismatch"` warning.
 
 ---
 
-## 8. Excel Writer (Includes Table Resizing Utility)
+## 8. Excel Writer (Data-Feed + Safe Zone; No Row Insertion)
 
-### 8.1 Template Contract
+### 8.1 Template Contract (Revised)
 
 Templates must include:
 
-* Named table `tbl_data`
+* Named table `tbl_data` (required)
 * Named table `tbl_narrative` (optional)
-* Formulas must reference structured table columns (e.g., `tbl_data[revenue]`)
+* Formulas should reference structured table columns (e.g., `tbl_data[revenue]`)
 
-### 8.2 openpyxl Table Resizing (Risk A Mitigation)
+#### New requirement: preallocated data-feed zone
 
-**Reality:** openpyxl will not auto-expand Excel tables.
-**Requirement:** `export/excel_writer.py` must implement a utility that:
+* The worksheet must include **a preallocated set of blank rows beneath `tbl_data`** (e.g., 500–2000 rows) reserved for Loom to write into.
+* Content such as footers/notes/signatures must be placed **below the maximum reserved zone** or on a separate sheet.
 
-1. Locates `tbl_data` via `worksheet.tables`
-2. Reads current table ref (e.g., `DATA!A1:H20`)
-3. Computes new ref based on rows to insert
-4. Updates the table definition to the new ref
-5. Writes values into the expanded cell area
+### 8.2 Table Expansion Policy (Revised)
 
-**Log:**
-`event="excel.table_resized"` with old/new refs and row counts.
-**Implementation priority:** prototype this function first.
+**The writer MUST NOT insert worksheet rows** (e.g., no `worksheet.insert_rows`). Instead:
+
+1. Locate `tbl_data` via `worksheet.tables`
+2. Compute the required row count for injection
+3. Verify the required rows fit within the template’s reserved zone
+4. Update the table definition `ref` to the new range
+5. Write values into existing cells within the reserved zone
+
+#### Events
+
+* `excel.table_resized` with old/new refs and row counts
+* `excel.safe_zone_violation` when requested rows exceed reserved capacity (hard error)
 
 ---
 
 ## 9. Execution Flow (High Level)
 
-**CLI entrypoints (`__main__.py` / `cli.py` / `main.py`):**
+**Concurrency model (new):** Client I/O is **async-first**.
+
+* All vendor clients expose `async` methods.
+* Fetchers and strategies may parallelize independent requests with `asyncio.gather`.
+* CLI remains a synchronous entrypoint but executes the pipeline via `asyncio.run(...)`.
+
+**CLI entrypoints (`__main__.py` / `cli.py` / `main.py`):
 
 1. Parse CLI args (ticker, strategy, start/end years, `--debug`, narrative flags).
 2. Resolve tickers (canonical + vendor tickers).
@@ -312,16 +334,18 @@ Default overwrite semantics are intentional (no file pile-up).
 
 ---
 
-## 11. Settings and Secrets Policy (Operational)
+## 11. Settings and Secrets Policy (Operational) — additions
 
-**Goal:** Avoid committing secrets.
+Settings must support:
 
-* `src/loom/config/settings.example.toml` is committed and documents all supported keys.
-* Actual secrets/config are sourced from:
+* HTTP defaults: timeouts, user-agent, retries/backoff
+* Cache configuration:
 
-  * environment variables (preferred for CI), and/or
-  * a user-local settings file (not committed), e.g. `~/.config/loom/settings.toml` (path can be platform-specific)
-* Provider selection, model names, and non-secret defaults may be present in the example file.
+  * `cache_dir` (default `.cache/loom/`)
+  * `cache_mode` (`off` | `readonly` | `readwrite`)
+  * optional TTL (if enabled)
+* Provider configuration (LLM providers optional; narrative can be disabled)
+* Outlook integration is optional and must be able to be disabled cleanly on non-Windows platforms.
 
 ---
 

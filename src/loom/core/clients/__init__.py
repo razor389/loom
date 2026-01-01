@@ -1,11 +1,13 @@
 # src/loom/core/clients/__init__.py
 """
-Low-level client drivers.
+Low-level vendor client drivers (async-first).
 
 Clients are thin wrappers around external systems (HTTP APIs, EDGAR retrieval, yfinance, Outlook COM).
 They focus on:
-- request/response mechanics,
-- retries/rate limiting/circuit breaking,
-- parsing into Python primitives,
-and do not perform business-level metric mapping or validation.
+- async request/response mechanics via shared `loom.core.http` transport,
+- retries/backoff and timeouts,
+- caching at the client boundary (readwrite/readonly/off),
+- parsing into Python primitives.
+
+Business-level metric mapping/validation belongs in fetchers/domain, not clients.
 """
