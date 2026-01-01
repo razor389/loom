@@ -48,6 +48,11 @@ loom/
 │       │   └── ticker_map.yaml           # OPTIONAL: Vendor ticker aliases (BRK.B -> BRK-B)
 │       │
 │       ├── core/
+|       ├── core/
+|       │   ├── resolution/
+|       │   │   ├── __init__.py
+|       │   │   └── tickers.py
+|       |   |
 │       │   ├── http/                     # Shared async HTTP + caching primitives
 │       │   │   ├── __init__.py
 │       │   │   ├── transport.py          # httpx AsyncClient wrapper, timeouts, headers
@@ -223,10 +228,18 @@ Mappings (`mappings_operating.yaml`, `mappings_insurance.yaml`) must support ord
 ## 6. Entity Resolution (Ticker Alignment)
 
 **Problem:** Yahoo/FMP/SEC may require different tickers (BRK.B vs BRK-B).
-**Solution:** Optional `config/ticker_map.yaml` used by `fetchers/financial.py` to derive:
+**Solution:** * `config/ticker_map.yaml` is the **canonical entity-resolution registry**
 
-* `canonical_ticker` (used for output naming + records)
-* `vendor_tickers` (passed into clients)
+* It supports:
+
+  * `canonical`
+  * `input_aliases` (BRK.B → BRK-B, BF/B → BF-B, etc.)
+  * `vendor_symbols`: `yahoo`, `fmp`, `sec` (and optionally `forum`)
+  * `contexts.email_subject_terms`
+  * `contexts.forum_category_ticker`
+  * `adr.ordinary` (ADR → ord mapping)
+
+And update flow wording so **CLI** loads it once and passes a `TickerResolver` (or resolved struct) into strategies/fetchers rather than having each fetcher re-load it.
 
 **Log:**
 `event="entity.ticker_mapped"` when aliasing occurs.

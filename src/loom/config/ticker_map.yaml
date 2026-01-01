@@ -1,0 +1,115 @@
+version: 1
+
+# Canonical rule:
+# - "canonical" is the ticker users type and what Loom stores in output paths.
+# - Vendor symbols live under vendor_symbols.
+# - Context-specific search aliases live under contexts.*.
+
+tickers:
+  ADYEY:
+    canonical: ADYEY
+    input_aliases: ["ADY"]  # optional
+    vendor_symbols:
+      fmp: ADYEY
+      yahoo: ADYEN.AS          # ADR -> ordinary for Yahoo pricing/history
+      sec: ADYEY               # optional; set if you actually query SEC by ticker
+    contexts:
+      email_subject_terms: ["ADYYF", "Adyen"]
+      forum_category_ticker: ADYEY  # no override
+    adr:
+      ordinary: ADYEN.AS
+
+  META:
+    canonical: META
+    input_aliases: ["FB"]
+    vendor_symbols:
+      fmp: META
+      yahoo: META
+      sec: META
+    contexts:
+      email_subject_terms: ["FB", "Facebook", "Zuckerberg"]
+      forum_category_ticker: META
+
+  GOOGL:
+    canonical: GOOGL
+    input_aliases: ["GOOG"]
+    vendor_symbols:
+      fmp: GOOGL
+      yahoo: GOOGL
+      sec: GOOGL
+    contexts:
+      email_subject_terms: ["GOOG"]
+      forum_category_ticker: GOOGL
+
+  BRK.B:
+    canonical: BRK.B
+    input_aliases: ["BRK-B", "BRK", "BRK/B"]
+    vendor_symbols:
+      fmp: BRK.B
+      yahoo: BRK-B
+      sec: BRK-B
+    contexts:
+      email_subject_terms: ["BRK", "BRK.B"]
+      forum_category_ticker: BRK     # from forum_search_config.json
+
+  BF.B:
+    canonical: BF.B
+    input_aliases: ["BF-B", "BFB", "BF/B"]
+    vendor_symbols:
+      fmp: BF.B
+      yahoo: BF-B
+      sec: BF-B
+    contexts:
+      email_subject_terms: ["BF.B", "BFB", "BF/B"]
+      forum_category_ticker: BF.B
+
+  # ADR mappings (from adr_to_ord_mapping.json)
+  TSM:
+    canonical: TSM
+    vendor_symbols: { fmp: TSM, yahoo: 2330.TW, sec: TSM }
+    adr: { ordinary: 2330.TW }
+
+  BABA:
+    canonical: BABA
+    vendor_symbols: { fmp: BABA, yahoo: 9988.HK, sec: BABA }
+    adr: { ordinary: 9988.HK }
+
+  ASML:
+    canonical: ASML
+    vendor_symbols: { fmp: ASML, yahoo: ASML.AS, sec: ASML }
+    adr: { ordinary: ASML.AS }
+
+  NVO:
+    canonical: NVO
+    vendor_symbols: { fmp: NVO, yahoo: NOVO-B.CO, sec: NVO }
+    adr: { ordinary: NOVO-B.CO }
+
+  BIDU:
+    canonical: BIDU
+    vendor_symbols: { fmp: BIDU, yahoo: 9888.HK, sec: BIDU }
+    adr: { ordinary: 9888.HK }
+
+  NSRGY:
+    canonical: NSRGY
+    vendor_symbols: { fmp: NSRGY, yahoo: NESN.SW, sec: NSRGY }
+    adr: { ordinary: NESN.SW }
+
+  SONY:
+    canonical: SONY
+    vendor_symbols: { fmp: SONY, yahoo: 6758.T, sec: SONY }
+    adr: { ordinary: 6758.T }
+
+  LPL:
+    canonical: LPL
+    vendor_symbols: { fmp: LPL, yahoo: 034220.KS, sec: LPL }
+    adr: { ordinary: 034220.KS }
+
+  LVMUY:
+    canonical: LVMUY
+    vendor_symbols: { fmp: LVMUY, yahoo: MC.PA, sec: LVMUY }
+    adr: { ordinary: MC.PA }
+
+  LRLCY:
+    canonical: LRLCY
+    vendor_symbols: { fmp: LRLCY, yahoo: OR.PA, sec: LRLCY }
+    adr: { ordinary: OR.PA }
