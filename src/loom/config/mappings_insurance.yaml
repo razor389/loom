@@ -1,0 +1,36 @@
+# Maps Loom metric keys -> ordered candidate SEC tags (sequential fallback).
+# These are placeholders; you will expand/override as you port your legacy per-ticker configs.
+
+total_assets:
+  - Assets
+
+total_liabilities:
+  - Liabilities
+
+stockholders_equity:
+  - StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest
+  - StockholdersEquity
+
+premiums_earned:
+  - PremiumsEarned
+  - PremiumsWritten
+
+losses_and_expenses:
+  - LossesAndLossAdjustmentExpense
+  - PolicyholderBenefitsAndClaimsIncurred
+
+underwriting_expenses:
+  - UnderwritingExpenses
+
+acquisition_costs:
+  - DeferredPolicyAcquisitionCostsAmortizationExpense
+  - PolicyAcquisitionCosts
+
+investment_income:
+  - InvestmentIncomeNet
+
+interest_expense:
+  - InterestExpense
+
+taxes:
+  - IncomeTaxExpenseBenefit

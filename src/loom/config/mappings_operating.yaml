@@ -1,0 +1,33 @@
+# Maps Loom metric keys -> ordered candidate vendor keys (sequential fallback).
+# Primary source: FMP financial statements + FMP key metrics.
+# Yahoo-derived fields (price_low/high, market_cap) should be populated by the Yahoo client,
+# but are included here as placeholders for a unified mapping contract if you choose to enforce it.
+
+revenue: [revenue]
+net_income: [netIncome]
+operating_income: [operatingIncome]
+
+shares_diluted: [weightedAverageShsOutDil]
+
+dividends_paid:
+  # In FMP cash-flow-statement, dividendsPaid is typically negative cash flow.
+  # Loom can normalize sign; contract sign_convention is negative.
+  - dividendsPaid
+
+total_stockholders_equity:
+  - totalStockholdersEquity
+  - totalEquity
+
+long_term_debt: [longTermDebt]
+short_term_debt: [shortTermDebt]
+capital_lease_obligations: [capitalLeaseObligations]
+
+income_tax_expense: [incomeTaxExpense]
+income_before_tax: [incomeBeforeTax]
+
+depreciation_and_amortization: [depreciationAndAmortization]
+capital_expenditure: [capitalExpenditure]
+
+# FMP key metrics (key-metrics endpoint)
+pe_ratio:
+  - peRatio

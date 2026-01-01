@@ -1,0 +1,86 @@
+# src/loom/config/settings.example.toml
+# Example configuration for Loom (NO secrets).
+# Runtime configuration should come from env vars and/or a user-local settings.toml.
+
+[app]
+# Base output directory (runtime artifacts)
+output_dir = "outputs"
+# When true, emit debug artifacts under outputs/debug/{TICKER}/{YYYY}/ (cleared each run)
+debug = false
+# Default strategy when CLI uses --strategy auto
+default_strategy = "auto"
+
+[years]
+# Optional defaults; CLI flags override
+start_year = 2020
+# If omitted, the pipeline derives an end year from fiscal-year-end + available data.
+end_year = 0
+
+[http]
+user_agent = "Loom Research (contact: you@example.com)"
+timeout_seconds = 30
+connect_timeout_seconds = 10
+
+[retry]
+max_attempts = 5
+backoff_min_seconds = 0.5
+backoff_max_seconds = 8
+retry_status_codes = [429, 500, 502, 503, 504]
+
+[cache]
+# Cache lives outside outputs/ so it can be reused across runs
+cache_dir = ".cache/loom"
+# off | readonly | readwrite
+cache_mode = "readwrite"
+# 0 disables TTL enforcement
+ttl_seconds = 0
+
+[vendors.fmp]
+base_url = "https://financialmodelingprep.com"
+# API key should be supplied via env var; do not hardcode here.
+api_key_env = "FMP_API_KEY"
+# Annual by default; strategies may override
+default_period = "annual"
+
+[vendors.sec]
+# SEC requires a descriptive user agent with contact info
+user_agent = "Loom Research (contact: you@example.com)"
+# Optional override for endpoints if needed
+base_url = "https://data.sec.gov"
+
+[vendors.yahoo]
+# No API key required; used via yfinance or equivalent
+enabled = true
+
+[fx]
+# When true, ADR scenarios may convert Yahoo USD quotes to reported_currency using EOY FX rates.
+convert_adr_quotes = true
+# Placeholder for future FX provider config
+provider = "fmp_or_other"
+
+[segmentation]
+# unified | fmp_basic | off
+mode = "unified"
+# If unified fails, fall back to basic FMP segmentation
+fallback_mode = "fmp_basic"
+
+[narrative]
+enabled = true
+# Providers are pluggable: openai | anthropic | gemini
+provider = "openai"
+model = "gpt-4.1-mini"
+# If true, attempt Outlook ingestion; must degrade gracefully on non-Windows.
+outlook_enabled = true
+outlook_lookback_years = 15
+# Optional narrative categories (used for routing/templating)
+categories = ["qualities", "moat_threat"]
+
+[excel]
+# Package templates (loaded via package resources)
+operating_template = "operating_v2.xlsm"
+insurance_template = "insurance_v2.xlsm"
+# Required template contract names
+data_table_name = "tbl_data"
+narrative_table_name = "tbl_narrative"
+# Safe zone sentinel named range (single-cell name in the template)
+safezone_end_name = "Loom_SafeZone_End"
