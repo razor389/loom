@@ -56,7 +56,7 @@ loom/
 │       │   │
 │       │   ├── clients/                  # Low-level Drivers (HTTP/MAPI wrappers)
 │       │   │   ├── __init__.py
-│       │   │   ├── fmp_client.py         # Requests, Rate Limits, JSON parsing
+│       │   │   ├── fmp_client.py         # Rate Limits, JSON parsing
 │       │   │   ├── sec_client.py         # EDGAR/Exhibit 13 scraping logic
 │       │   │   ├── yahoo_client.py       # yfinance wrapper
 │       │   │   └── outlook_client.py     # win32com logic (Circuit breaker enabled)
@@ -257,16 +257,25 @@ Templates must include:
 
 #### New requirement: preallocated data-feed zone
 
-* The worksheet must include **a preallocated set of blank rows beneath `tbl_data`** (e.g., 500–2000 rows) reserved for Loom to write into.
+* The worksheet must include **a preallocated set of blank rows beneath `tbl_data`** reserved for Loom to write into.
 * Content such as footers/notes/signatures must be placed **below the maximum reserved zone** or on a separate sheet.
+
+#### New requirement: Safe Zone sentinel named range (required)
+
+* The template must define a **named range** `Loom_SafeZone_End` that refers to **a single cell** on the same worksheet as `tbl_data`.
+* `Loom_SafeZone_End` marks the **last permissible row** that `tbl_data` may expand into.
+* Template authors must ensure the area between the bottom of the initial `tbl_data` table and `Loom_SafeZone_End` is part of the reserved data-feed zone (blank / safe to overwrite).
 
 ### 8.2 Table Expansion Policy (Revised)
 
 **The writer MUST NOT insert worksheet rows** (e.g., no `worksheet.insert_rows`). Instead:
 
 1. Locate `tbl_data` via `worksheet.tables`
-2. Compute the required row count for injection
-3. Verify the required rows fit within the template’s reserved zone
+2. Determine the maximum allowed expansion using the `Loom_SafeZone_End` named range:
+
+   * compute the last usable row from the named range cell
+   * compute the required last row for the injected dataset
+3. Verify the injected dataset fits within the safe zone; otherwise raise a hard error
 4. Update the table definition `ref` to the new range
 5. Write values into existing cells within the reserved zone
 
@@ -274,6 +283,11 @@ Templates must include:
 
 * `excel.table_resized` with old/new refs and row counts
 * `excel.safe_zone_violation` when requested rows exceed reserved capacity (hard error)
+
+#### Serialization rule
+
+* `FinancialRecord.value` is `Decimal` in the IR.
+* Immediately before writing to Excel cells, numeric values must be explicitly cast (e.g., `float(decimal_value)`), rather than relying on implicit `openpyxl` conversion.
 
 ---
 
@@ -285,7 +299,7 @@ Templates must include:
 * Fetchers and strategies may parallelize independent requests with `asyncio.gather`.
 * CLI remains a synchronous entrypoint but executes the pipeline via `asyncio.run(...)`.
 
-**CLI entrypoints (`__main__.py` / `cli.py` / `main.py`):
+**CLI entrypoints (`__main__.py` / `cli.py` / `main.py`):**
 
 1. Parse CLI args (ticker, strategy, start/end years, `--debug`, narrative flags).
 2. Resolve tickers (canonical + vendor tickers).
